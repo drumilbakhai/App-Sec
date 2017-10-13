@@ -1,0 +1,21 @@
+<html>
+<head>
+ <title>test</title>
+</head>
+<body>
+<h1>Here are the images</h1>
+
+<% link.forEach(function(link){ %>
+    <img src=<%=link.path%> width =400px height = 200px>
+    <h5><%=link.caption%> </h5>
+<% }) %>
+
+<a href = "/"> Upload More Images </a>	
+
+<!-- <form action "/" method="POST" enctype="multipart/form-data">
+ <input type="file" name="myimage" ></input>
+ <input type="submit" name="submit" value="submit"></input>
+</form> -->
+
+</body>
+</html>
