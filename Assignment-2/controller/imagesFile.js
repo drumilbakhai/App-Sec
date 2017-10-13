@@ -46,6 +46,7 @@ exports.uploadImage = function(req,res){
 		res.render('../views/error_upload.ejs');
 	}
 	else{
+
 		// The dictionary imagePath contains different attributes such as path, original name and caption to store in mongoose.
 		var imagePath = {}
 		imagePath['path'] = req.file.path;
@@ -151,8 +152,11 @@ function customPagination(req,res,user){
    					// Get the data only according the page index. 
 
    					if (typeof req.query.page !== 'undefined') {
+   						if(req.query.page>pageCount || req.query.page<1){
+   							res.render('../views/error_upload.ejs');
+   						}
 				        currentPage = +req.query.page;
-				    }
+				    } 
 				    // If the pagenumber 2 is request all the imagesArray in the index 2 is retreived and send to the pagination front end
    					imagesList = imagesArrays[+currentPage -1];
    					// res.send(imagesList);

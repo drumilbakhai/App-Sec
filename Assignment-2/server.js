@@ -6,7 +6,7 @@ var app = express();
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var port = process.env.PORT || 3000;
-
+var path = require('path');
 // Multer is a express library that allows the user to upload files to the Nodejs Server 
 var multer = require('multer');
 
@@ -24,7 +24,18 @@ var storage = multer.diskStorage({
 });
 
 // Setting the multer storage to the variable upload
-var upload = multer({ storage:storage });
+var upload = multer({ 
+				storage:storage,
+				fileFilter: function(req, file, callback){
+					var ext = path.extname(file.originalname);
+					console.log('File Extension is '+path.extname(file.originalname));
+					
+					if(ext !== '.png' && ext !== '.JPG' && ext !== '.gif' && ext !== '.jpeg') {
+		            	return callback(new Error('Only images are allowed'))
+		        	}
+        			callback(null, true)
+				}
+			 });
 
 
 app.use(express.static(__dirname + '/public'));
