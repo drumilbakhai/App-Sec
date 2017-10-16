@@ -3,10 +3,11 @@
 // Including various dependencies for the executing the code
 var express = require('express');
 var app = express();
+var helmet = require('helmet');
 var mongoose = require('mongoose');
 var bodyParser = require('body-parser');
 var port = process.env.PORT || 3000;
-
+var path = require('path');
 // Multer is a express library that allows the user to upload files to the Nodejs Server 
 var multer = require('multer');
 
@@ -24,7 +25,18 @@ var storage = multer.diskStorage({
 });
 
 // Setting the multer storage to the variable upload
-var upload = multer({ storage:storage });
+var upload = multer({ 
+	storage:storage,
+	fileFilter: function(req, file, callback){
+		var ext = path.extname(file.originalname);
+		console.log('File Extension is '+path.extname(file.originalname));
+		
+		if(ext !== '.png' && ext !== '.JPG' && ext !== '.gif' && ext !== '.jpeg') {
+        	return callback(new Error('Only images are allowed'))
+    	}
+		callback(null, true)
+	}
+});
 
 
 app.use(express.static(__dirname + '/public'));
@@ -43,8 +55,21 @@ promise.then(function(db){
 	console.log('Not able to make connection because '+err);
 });
 
+// Configuring the server for production level security.
+app.use(helmet());
+
+app.route('/images/user_*')
+   .get(routesControls.handlingInvalidPages);
+
+app.use(function(err,req,res,next){
+	if(err.status !== 404){
+		return next();
+	}
+	res.send(err.message || 'Page Not Found. Please Try a Valid URL');
+});
+
 // Different routes to handle the logic. 
-app.route('/')
+app.route('/index')
   	.get(routesControls.connection)
   	.post(upload.single('myimage'),routesControls.uploadImage)
 
@@ -59,6 +84,12 @@ app.route('/redirect')
 
 app.route('/pagination')
    .get(routesControls.displayPagination);
+
+app.use(function (req, res, next) {
+  res.removeHeader("X-Powered-By");
+  next();
+});
+
 
 
 app.listen(port);

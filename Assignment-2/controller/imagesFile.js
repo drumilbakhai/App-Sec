@@ -39,6 +39,12 @@ exports.connection = function(req,res){
 	res.render('../views/index.ejs');
 };
 
+exports.handlingInvalidPages = function(req,res,next){
+	var err = new Error();
+	err.status = 404;
+	next(err);
+}
+
 // The main logic to upload the images to the local directory.
 exports.uploadImage = function(req,res){
 	console.log('file name is '+req.file);
@@ -46,18 +52,26 @@ exports.uploadImage = function(req,res){
 		res.render('../views/error_upload.ejs');
 	}
 	else{
+		console.log(typeof(req.body.caption));
+		SingleImage.find({'user':req.body.caption}, function(err,data){
+			if(err){
+				console.log("error here");
+			}
+			else{
+				console.log("Data is "+data);
+			}
+		})
 		// The dictionary imagePath contains different attributes such as path, original name and caption to store in mongoose.
 		var imagePath = {}
 		imagePath['path'] = req.file.path;
 		imagePath['originalname'] = req.file.originalname;
 		imagePath['caption'] = req.body.caption;
-
 		// Calling the helper function to add image to the mongoose. The callback handles the error and data.
 		addImage(imagePath, function(err,data){
 			if(err){
 				// Calling the page to render error message page.
 				res.render('../views/error_upload.ejs');
-			}
+			} 
 			else{
 				// Calling the page to render Success message page.
 				res.render('../views/success_upload.ejs')	
@@ -69,10 +83,12 @@ exports.uploadImage = function(req,res){
 }
 
 exports.getAllImages = function(req,res){
+
 	customPagination(req,res);
 }
 
 exports.getImagesByUser = function(req,res){
+	console.log(typeof(req.params.user));
 	// Call the function customPagination to retreive images specific to the user.
 	var user = req.params.user;
 	customPagination(req,res,user);
@@ -130,6 +146,9 @@ function customPagination(req,res,user){
    				if(err){
    					console.log('Problem in retrieving Images '+err)
    				}
+   				if(data.length == 0){
+   					res.send('No Images by '+query['user']+' found');
+   				}
    				else{
    					// console.log(data);
    					// Making the images array to store the images record from the mongodb.
@@ -151,8 +170,11 @@ function customPagination(req,res,user){
    					// Get the data only according the page index. 
 
    					if (typeof req.query.page !== 'undefined') {
+   						if(req.query.page>pageCount || req.query.page<1){
+   							res.render('../views/error_upload.ejs');
+   						}
 				        currentPage = +req.query.page;
-				    }
+				    } 
 				    // If the pagenumber 2 is request all the imagesArray in the index 2 is retreived and send to the pagination front end
    					imagesList = imagesArrays[+currentPage -1];
    					// res.send(imagesList);
